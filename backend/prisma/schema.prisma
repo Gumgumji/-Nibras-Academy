@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+// ===========================================
+// Prisma Schema للمشروع
+// ===========================================
+
+// الـ generator يولّد Prisma Client اللي نستخدمه في الكود
+generator client {
+  provider = "prisma-client-js"
+}
+
+// مصدر البيانات: SQL Server
+// الـ URL يجي من ملف .env
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+
+
+// ===========================================
+// جدول المستخدمين
+// ===========================================
+model User {
+  // الـ ID: Primary Key، يزيد تلقائياً
+  id        Int      @id @default(autoincrement())
+  
+  // الاسم
+  name      String   @db.NVarChar(100)
+  
+  // الإيميل: فريد، ما يتكرر
+  // UNIQUE constraint يضمن data integrity على مستوى DB
+  email     String   @unique @db.NVarChar(150)
+  
+  // كلمة السر: مشفّرة بـ bcrypt
+  // NVarChar(255) للمرونة لو غيّرنا خوارزمية التشفير مستقبلاً
+  password  String   @db.NVarChar(255)
+  
+// الدور: ADMIN أو TRAINEE
+
+role      String   @default("TRAINEE") @db.NVarChar(20)
+  
+  // التواريخ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // العلاقة: المستخدم (Admin) يقدر ينشئ كورسات كثيرة
+  courses   Course[]
+}
+
+
+// ===========================================
+// جدول الكورسات
+// ===========================================
+model Course {
+  // الـ ID
+  id          Int      @id @default(autoincrement())
+  
+  // عنوان الكورس
+  title       String   @db.NVarChar(200)
+  
+  // الوصف: نص طويل (حتى 2GB)
+  description String   @db.NVarChar(Max)
+  
+  // رابط فيديو اليوتيوب
+  youtubeUrl  String   @db.NVarChar(500)
+  
+  // الـ ID لمنشئ الكورس (الأدمن)
+  // nullable: لو حُذف الأدمن، الكورس يبقى موجود
+  createdById Int?
+  
+  // العلاقة مع جدول Users
+  // onDelete: SetNull = لو الأدمن حُذف، نخلّي createdById = null
+  // ما نحذف الكورس عشان قيمته
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  
+  // التواريخ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
