@@ -1,4 +1,4 @@
-# LMS Web Application
+# Nibras Academy - LMS Web Application
 
 A simple Learning Management System built with Node.js, Express, Prisma, and React.
 
